@@ -1,0 +1,206 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// ====================================================================
+// --- GENERATOR AND DATASOURCE CONFIGURATION ---
+// ====================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql" // Ganti dengan "mysql", "sqlite", atau database lain yang Anda gunakan.
+  url      = env("DATABASE_URL")
+}
+
+// ====================================================================
+// --- AUTHENTICATION & USER MANAGEMENT MODELS ---
+// ====================================================================
+
+// Model dasar untuk semua pengguna yang dapat login ke sistem.
+model User {
+  id                String          @id @default(uuid())
+  email             String          @unique
+  password          String
+  // Status akun: 'PENDING' untuk registrasi yang butuh aktivasi, 'ACTIVE' untuk akun yang sudah aktif,
+  // 'INACTIVE' untuk akun yang dinonaktifkan (soft delete).
+  status            String          @default("PENDING") // ACTIVE, PENDING, INACTIVE
+  registrationToken String?         @unique // Digunakan untuk alur registrasi NISN.
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  deletedAt         DateTime?       // Soft delete: untuk menandai akun yang dinonaktifkan.
+  
+  // Hubungan dengan peran pengguna.
+  roles             UserRole[]
+  
+  // Hubungan opsional ke data spesifik pengguna.
+  student           Student?
+  teacher           Teacher?
+  parent            Parent?
+
+  // Hubungan dengan aktivitas & notifikasi.
+  inputtedPoints    PointRecord[]   @relation("InputtedBy")
+  notifications     Notification[]
+  activityLogs      ActivityLog[]
+  
+  @@map("users")
+}
+
+// Model untuk peran-peran yang ada dalam sistem.
+model Role {
+  id      String     @id @default(uuid())
+  name    String     @unique // e.g., 'ADMIN', 'GURU', 'WALIKELAS', 'SISWA', 'ORANGTUA'
+  users   UserRole[]
+  
+  @@map("roles")
+}
+
+// Tabel penghubung untuk hubungan many-to-many antara User dan Role.
+// Memungkinkan satu User memiliki banyak Role (misal: Guru dan OrangTua).
+model UserRole {
+  userId  String
+  roleId  String
+  
+  user    User @relation(fields: [userId], references: [id])
+  role    Role @relation(fields: [roleId], references: [id])
+  
+  @@id([userId, roleId])
+  @@map("user_roles")
+}
+
+// ====================================================================
+// --- ACADEMIC & DATA MASTER MODELS ---
+// ====================================================================
+
+// Model untuk data kelas.
+model Class {
+  id              String          @id @default(uuid())
+  name            String          @unique // e.g., "X IPA 1"
+  homeroomTeacher Teacher?        @relation("HomeroomTeacher") // Wali kelas
+  students        Student[]
+  
+  @@map("classes")
+}
+
+// Model untuk data siswa.
+model Student {
+  id              String          @id @default(uuid())
+  nisn            String          @unique // NISN sebagai identifikasi unik siswa.
+  name            String
+  // `totalPoint` disimpan di sini untuk kemudahan akses dan performa.
+  // Pastikan untuk mengupdate nilai ini setiap kali ada PointRecord baru.
+  totalPoint      Int             @default(0)
+  classId         String?
+  userId          String          @unique // Menghubungkan ke akun User siswa.
+  
+  user            User            @relation(fields: [userId], references: [id])
+  class           Class?          @relation(fields: [classId], references: [id])
+  pointRecords    PointRecord[]
+  parentStudents  ParentStudent[]
+  
+  @@map("students")
+}
+
+// Model untuk data guru.
+model Teacher {
+  id              String          @id @default(uuid())
+  nip             String          @unique
+  name            String
+  isHomeroom      Boolean         @default(false) // Flag untuk menandai wali kelas.
+  homeroomClassId String?         @unique // Jika wali kelas, link ke kelas yang dia ajar.
+  userId          String          @unique // Menghubungkan ke akun User guru.
+  
+  user            User            @relation(fields: [userId], references: [id])
+  homeroomClass   Class?          @relation("HomeroomTeacher", fields: [homeroomClassId], references: [id])
+  
+  @@map("teachers")
+}
+
+// Model untuk data orang tua.
+model Parent {
+  id              String          @id @default(uuid())
+  name            String
+  userId          String          @unique // Menghubungkan ke akun User orang tua.
+  
+  user            User            @relation(fields: [userId], references: [id])
+  parentStudents  ParentStudent[]
+  
+  @@map("parents")
+}
+
+// Tabel penghubung untuk hubungan many-to-many antara Parent dan Student.
+// Satu orang tua bisa memiliki banyak anak, satu anak bisa memiliki banyak orang tua.
+model ParentStudent {
+  parentId  String
+  studentId String
+  
+  parent    Parent  @relation(fields: [parentId], references: [id])
+  student   Student @relation(fields: [studentId], references: [id])
+  
+  @@id([parentId, studentId])
+  @@map("parent_students")
+}
+
+// ====================================================================
+// --- POINT & NOTIFICATION SYSTEM MODELS ---
+// ====================================================================
+
+// Model untuk kategori poin (pelanggaran atau prestasi).
+model PointCategory {
+  id            String        @id @default(uuid())
+  name          String
+  description   String?
+  pointValue    Int           // Nilai poin: positif untuk prestasi, negatif untuk pelanggaran.
+  isAchievement Boolean       // true = prestasi, false = pelanggaran.
+  
+  pointRecords  PointRecord[]
+  
+  @@map("point_categories")
+}
+
+// Model untuk mencatat setiap kejadian pelanggaran/prestasi.
+model PointRecord {
+  id              String          @id @default(uuid())
+  studentId       String
+  pointCategoryId String
+  inputtedById    String          // ID User (guru/wali kelas) yang menginput.
+  notes           String?
+  createdAt       DateTime        @default(now())
+  
+  student         Student         @relation(fields: [studentId], references: [id])
+  pointCategory   PointCategory   @relation(fields: [pointCategoryId], references: [id])
+  inputtedBy      User            @relation("InputtedBy", fields: [inputtedById], references: [id])
+  
+  @@map("point_records")
+}
+
+// Model untuk notifikasi real-time.
+model Notification {
+  id          String        @id @default(uuid())
+  userId      String
+  message     String
+  isRead      Boolean       @default(false)
+  createdAt   DateTime      @default(now())
+  
+  user        User          @relation(fields: [userId], references: [id])
+  
+  @@map("notifications")
+}
+
+// ====================================================================
+// --- LOGGING & AUDIT MODELS ---
+// ====================================================================
+
+// Model untuk mencatat log aktivitas penting dalam sistem.
+model ActivityLog {
+  id          String   @id @default(uuid())
+  userId      String
+  action      String   // e.g., "CREATE_STUDENT", "UPDATE_POINT", "LOGIN"
+  details     String?  // Keterangan tambahan, bisa dalam format JSON.
+  createdAt   DateTime @default(now())
+  
+  user        User     @relation(fields: [userId], references: [id])
+  
+  @@map("activity_logs")
+}
