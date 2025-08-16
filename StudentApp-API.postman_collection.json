@@ -1,0 +1,519 @@
+{
+  "info": {
+    "name": "StudentApp API Collection",
+    "description": "API collection for StudentApp (CRUD, Auth, Point System)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth (NextAuth)",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "/api/auth/[...nextauth]",
+              "host": ["api"],
+              "path": ["auth", "[...nextauth]"]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "email", "value": "user@email.com", "type": "text" },
+                { "key": "password", "value": "password", "type": "text" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "/api/auth/register",
+              "host": ["api"],
+              "path": ["auth", "register"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@email.com\",\n  \"password\": \"password123\",\n  \"role\": \"SISWA\",\n  \"name\": \"Nama Siswa\",\n  \"nisn\": \"1234567890\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Students",
+      "item": [
+        {
+          "name": "Get All Students",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "/api/students",
+              "host": ["api"],
+              "path": ["students"]
+            }
+          }
+        },
+        {
+          "name": "Create Student",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "/api/students",
+              "host": ["api"],
+              "path": ["students"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nisn\": \"1234567890\",\n  \"name\": \"Nama Siswa\",\n  \"classId\": \"id_kelas\",\n  \"userId\": \"id_user\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Student By ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "/api/students/:id",
+              "host": ["api"],
+              "path": ["students", ":id"]
+            }
+          }
+        },
+        {
+          "name": "Update Student",
+          "request": {
+            "method": "PUT",
+            "url": {
+              "raw": "/api/students/:id",
+              "host": ["api"],
+              "path": ["students", ":id"]
+            },
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Nama Baru\"\n}" }
+          }
+        },
+        {
+          "name": "Delete Student",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "/api/students/:id",
+              "host": ["api"],
+              "path": ["students", ":id"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Teachers",
+      "item": [
+        {
+          "name": "Get All Teachers",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "/api/teachers",
+              "host": ["api"],
+              "path": ["teachers"]
+            }
+          }
+        },
+        {
+          "name": "Create Teacher",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "/api/teachers",
+              "host": ["api"],
+              "path": ["teachers"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nip\": \"1987654321\",\n  \"name\": \"Nama Guru\",\n  \"userId\": \"id_user\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Teacher By ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "/api/teachers/:id",
+              "host": ["api"],
+              "path": ["teachers", ":id"]
+            }
+          }
+        },
+        {
+          "name": "Update Teacher",
+          "request": {
+            "method": "PUT",
+            "url": {
+              "raw": "/api/teachers/:id",
+              "host": ["api"],
+              "path": ["teachers", ":id"]
+            },
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Nama Baru\"\n}" }
+          }
+        },
+        {
+          "name": "Delete Teacher",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "/api/teachers/:id",
+              "host": ["api"],
+              "path": ["teachers", ":id"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Parents",
+      "item": [
+        {
+          "name": "Get All Parents",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "/api/parents",
+              "host": ["api"],
+              "path": ["parents"]
+            }
+          }
+        },
+        {
+          "name": "Create Parent",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "/api/parents",
+              "host": ["api"],
+              "path": ["parents"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Nama Orangtua\",\n  \"userId\": \"id_user\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Parent By ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "/api/parents/:id",
+              "host": ["api"],
+              "path": ["parents", ":id"]
+            }
+          }
+        },
+        {
+          "name": "Update Parent",
+          "request": {
+            "method": "PUT",
+            "url": {
+              "raw": "/api/parents/:id",
+              "host": ["api"],
+              "path": ["parents", ":id"]
+            },
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Nama Baru\"\n}" }
+          }
+        },
+        {
+          "name": "Delete Parent",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "/api/parents/:id",
+              "host": ["api"],
+              "path": ["parents", ":id"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Classes",
+      "item": [
+        {
+          "name": "Get All Classes",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "/api/classes",
+              "host": ["api"],
+              "path": ["classes"]
+            }
+          }
+        },
+        {
+          "name": "Create Class",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "/api/classes",
+              "host": ["api"],
+              "path": ["classes"]
+            },
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"X IPA 1\"\n}" }
+          }
+        },
+        {
+          "name": "Get Class By ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "/api/classes/:id",
+              "host": ["api"],
+              "path": ["classes", ":id"]
+            }
+          }
+        },
+        {
+          "name": "Update Class",
+          "request": {
+            "method": "PUT",
+            "url": {
+              "raw": "/api/classes/:id",
+              "host": ["api"],
+              "path": ["classes", ":id"]
+            },
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"X IPA 2\"\n}" }
+          }
+        },
+        {
+          "name": "Delete Class",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "/api/classes/:id",
+              "host": ["api"],
+              "path": ["classes", ":id"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Points",
+      "item": [
+        {
+          "name": "Get All Points",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "/api/points", "host": ["api"], "path": ["points"] }
+          }
+        },
+        {
+          "name": "Create Point",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "/api/points",
+              "host": ["api"],
+              "path": ["points"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"studentId\": \"id_siswa\",\n  \"pointCategoryId\": \"id_kategori\",\n  \"inputtedById\": \"id_user_guru\",\n  \"notes\": \"Prestasi/Pelanggaran\",\n  \"pointValue\": 10\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Point By ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "/api/points/:id",
+              "host": ["api"],
+              "path": ["points", ":id"]
+            }
+          }
+        },
+        {
+          "name": "Update Point",
+          "request": {
+            "method": "PUT",
+            "url": {
+              "raw": "/api/points/:id",
+              "host": ["api"],
+              "path": ["points", ":id"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"notes\": \"Update catatan\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Point",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "/api/points/:id",
+              "host": ["api"],
+              "path": ["points", ":id"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Point Categories",
+      "item": [
+        {
+          "name": "Get All Point Categories",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "/api/point-categories",
+              "host": ["api"],
+              "path": ["point-categories"]
+            }
+          }
+        },
+        {
+          "name": "Create Point Category",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "/api/point-categories",
+              "host": ["api"],
+              "path": ["point-categories"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Prestasi\",\n  \"description\": \"Deskripsi\",\n  \"pointValue\": 10,\n  \"isAchievement\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Point Category By ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "/api/point-categories/:id",
+              "host": ["api"],
+              "path": ["point-categories", ":id"]
+            }
+          }
+        },
+        {
+          "name": "Update Point Category",
+          "request": {
+            "method": "PUT",
+            "url": {
+              "raw": "/api/point-categories/:id",
+              "host": ["api"],
+              "path": ["point-categories", ":id"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Pelanggaran\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Point Category",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "/api/point-categories/:id",
+              "host": ["api"],
+              "path": ["point-categories", ":id"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "Get All Notifications",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "/api/notifications",
+              "host": ["api"],
+              "path": ["notifications"]
+            }
+          }
+        },
+        {
+          "name": "Create Notification",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "/api/notifications",
+              "host": ["api"],
+              "path": ["notifications"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"id_user\",\n  \"message\": \"Pesan notifikasi\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Notification By ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "/api/notifications/:id",
+              "host": ["api"],
+              "path": ["notifications", ":id"]
+            }
+          }
+        },
+        {
+          "name": "Update Notification",
+          "request": {
+            "method": "PUT",
+            "url": {
+              "raw": "/api/notifications/:id",
+              "host": ["api"],
+              "path": ["notifications", ":id"]
+            },
+            "body": { "mode": "raw", "raw": "{\n  \"isRead\": true\n}" }
+          }
+        },
+        {
+          "name": "Delete Notification",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "/api/notifications/:id",
+              "host": ["api"],
+              "path": ["notifications", ":id"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Activity Logs",
+      "item": [
+        {
+          "name": "Get All Activity Logs",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "/api/activity-logs",
+              "host": ["api"],
+              "path": ["activity-logs"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

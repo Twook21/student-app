@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
 // Import semua section
 import { HeroSection } from "@/components/landing/hero-section";
@@ -23,7 +24,16 @@ import { ScrollToTopButton } from "@/components/ui/scrollToTopButton";
 
 export default function LandingPage() {
   const [isOpen, setIsOpen] = useState(false);
-  const sectionIds = ["hero", "manfaat", "fitur", "cara-kerja", "testimoni", "faq", "security", "final-cta"];
+  const sectionIds = [
+    "hero",
+    "manfaat",
+    "fitur",
+    "cara-kerja",
+    "testimoni",
+    "faq",
+    "security",
+    "final-cta",
+  ];
   const activeSection = useActiveSection(sectionIds);
 
   const navLinks = [
@@ -59,24 +69,34 @@ export default function LandingPage() {
               width={40}
               height={40}
             />
-            <span className="text-xl font-bold text-gray-900 dark:text-gray-50 hidden sm:block">SMAN 1 Berbek</span>
+            <span className="text-xl font-bold text-gray-900 dark:text-gray-50 hidden sm:block">
+              SMAN 1 Berbek
+            </span>
           </a>
           <div className="flex items-center space-x-4">
             <nav className="hidden md:flex space-x-8 text-sm">
               {navLinks.map((link) => (
-                <a key={link.id} href={`#${link.id}`} className={getLinkClass(link.id)}>
+                <a
+                  key={link.id}
+                  href={`#${link.id}`}
+                  className={getLinkClass(link.id)}
+                >
                   {link.label}
                 </a>
               ))}
             </nav>
             {/* Tombol Daftar dan Masuk untuk Desktop */}
             <div className="hidden md:flex space-x-2">
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-full">
-                Masuk
-              </Button>
-              <Button variant="outline" className="rounded-full">
-                Daftar
-              </Button>
+              <Link href="/login">
+                <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-full">
+                  Masuk
+                </Button>
+              </Link>
+              <Link href="/register">
+                <Button variant="outline" className="rounded-full">
+                  Daftar
+                </Button>
+              </Link>
             </div>
             <ThemeToggle />
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -88,7 +108,12 @@ export default function LandingPage() {
               <SheetContent side="right">
                 <nav className="flex flex-col gap-6 mt-8">
                   {navLinks.map((link) => (
-                    <a key={link.id} onClick={() => setIsOpen(false)} href={`#${link.id}`} className={getMobileLinkClass(link.id)}>
+                    <a
+                      key={link.id}
+                      onClick={() => setIsOpen(false)}
+                      href={`#${link.id}`}
+                      className={getMobileLinkClass(link.id)}
+                    >
                       {link.label}
                     </a>
                   ))}
@@ -106,16 +131,32 @@ export default function LandingPage() {
         </header>
 
         <main className="flex-grow">
-          <section id="hero"><HeroSection /></section>
-          <section id="manfaat"><BenefitsSection /></section>
-          <section id="fitur"><FeaturesSection /></section>
-          <section id="cara-kerja"><HowItWorksSection /></section>
-          <section id="testimoni"><TestimonialsSection /></section>
-          <section id="faq"><FaqSection /></section>
-          <section id="security"><SecuritySection /></section>
-          <section id="final-cta"><FinalCTASection /></section>
+          <section id="hero">
+            <HeroSection />
+          </section>
+          <section id="manfaat">
+            <BenefitsSection />
+          </section>
+          <section id="fitur">
+            <FeaturesSection />
+          </section>
+          <section id="cara-kerja">
+            <HowItWorksSection />
+          </section>
+          <section id="testimoni">
+            <TestimonialsSection />
+          </section>
+          <section id="faq">
+            <FaqSection />
+          </section>
+          <section id="security">
+            <SecuritySection />
+          </section>
+          <section id="final-cta">
+            <FinalCTASection />
+          </section>
         </main>
-        
+
         <Footer />
         <ScrollToTopButton />
       </div>
