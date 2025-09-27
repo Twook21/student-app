@@ -4,23 +4,29 @@ import { hash } from 'bcryptjs'
 
 export async function GET() {
   try {
-    const categories = await prisma.pointCategory.findMany({
-      where: { isActive: true },
+    const roles = await prisma.role.findMany({
       include: {
-        pointTypes: {
-          where: { isActive: true }
+        rolePermissions: {
+          include: {
+            permission: true
+          }
+        },
+        _count: {
+          select: {
+            userRoles: true
+          }
         }
       },
-      orderBy: { categoryName: 'asc' }
+      orderBy: { roleName: 'asc' }
     })
 
     return NextResponse.json({
       success: true,
-      data: categories
+      data: roles
     })
   } catch (error) {
     return NextResponse.json(
-      { success: false, error: 'Failed to fetch point categories' },
+      { success: false, error: 'Failed to fetch roles' },
       { status: 500 }
     )
   }

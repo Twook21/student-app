@@ -1,22 +1,51 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { prisma } from "@/lib/prisma";
+import { NextRequest, NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma'
+import { hash } from 'bcryptjs'
 
-export async function GET(req: NextRequest) {
-  const session = await getServerSession();
-  if (!session)
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const classes = await prisma.class.findMany({
-    include: { homeroomTeacher: true, students: true },
-  });
-  return NextResponse.json(classes);
-}
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url)
+    const academicYear = searchParams.get('academicYear')
+    const gradeLevel = searchParams.get('gradeLevel')
 
-export async function POST(req: NextRequest) {
-  const session = await getServerSession();
-  if (!session)
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const data = await req.json();
-  const classObj = await prisma.class.create({ data });
-  return NextResponse.json(classObj);
+    const where = {
+      ...(academicYear && { academicYear }),
+      ...(gradeLevel && { gradeLevel: parseInt(gradeLevel) })
+    }
+
+    const classes = await prisma.class.findMany({
+      where,
+      include: {
+        homeroomTeacher: {
+          include: {
+            user: true
+          }
+        },
+        students: {
+          include: {
+            user: true
+          }
+        },
+        _count: {
+          select: {
+            students: true
+          }
+        }
+      },
+      orderBy: [
+        { gradeLevel: 'asc' },
+        { className: 'asc' }
+      ]
+    })
+
+    return NextResponse.json({
+      success: true,
+      data: classes
+    })
+  } catch (error) {
+    return NextResponse.json(
+      { success: false, error: 'Failed to fetch classes' },
+      { status: 500 }
+    )
+  }
 }

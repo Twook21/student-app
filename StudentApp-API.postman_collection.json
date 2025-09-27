@@ -1,519 +1,776 @@
 {
   "info": {
-    "name": "StudentApp API Collection",
-    "description": "API collection for StudentApp (CRUD, Auth, Point System)",
+    "name": "School Management System API",
+    "description": "Complete API collection for School Management System with Points tracking, RBAC, and User Management",
+    "version": "1.0.0",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "studentId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "teacherId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "classId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "pointRecordId",
+      "value": "",
+      "type": "string"
+    }
+  ],
   "item": [
     {
-      "name": "Auth (NextAuth)",
+      "name": "User Management",
       "item": [
         {
-          "name": "Login",
+          "name": "Get All Users",
           "request": {
-            "method": "POST",
-            "header": [],
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": {
-              "raw": "/api/auth/[...nextauth]",
-              "host": ["api"],
-              "path": ["auth", "[...nextauth]"]
-            },
-            "body": {
-              "mode": "formdata",
-              "formdata": [
-                { "key": "email", "value": "user@email.com", "type": "text" },
-                { "key": "password", "value": "password", "type": "text" }
+              "raw": "{{baseUrl}}/api/users?page=1&limit=10&search=&role=",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number for pagination"
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Number of items per page"
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Search by name, email, or username"
+                },
+                {
+                  "key": "role",
+                  "value": "",
+                  "description": "Filter by role"
+                }
               ]
             }
-          }
+          },
+          "response": []
         },
         {
-          "name": "Register",
+          "name": "Create User",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": {
-              "raw": "/api/auth/register",
-              "host": ["api"],
-              "path": ["auth", "register"]
-            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"user@email.com\",\n  \"password\": \"password123\",\n  \"role\": \"SISWA\",\n  \"name\": \"Nama Siswa\",\n  \"nisn\": \"1234567890\"\n}"
+              "raw": "{\n  \"email\": \"john.doe@school.edu\",\n  \"username\": \"johndoe\",\n  \"password\": \"password123\",\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"phone\": \"+6281234567890\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users"]
             }
-          }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "{{userId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"John Updated\",\n  \"lastName\": \"Doe Updated\",\n  \"phone\": \"+6281234567891\",\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "{{userId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "{{userId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Roles",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{userId}}/roles",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "{{userId}}", "roles"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Assign Role to User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roleId\": \"role_id_here\",\n  \"assignedBy\": \"assigner_user_id_here\",\n  \"expiresAt\": \"2024-12-31T23:59:59.000Z\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{userId}}/roles",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "{{userId}}", "roles"]
+            }
+          },
+          "response": []
         }
       ]
     },
     {
-      "name": "Students",
+      "name": "Student Management",
       "item": [
         {
           "name": "Get All Students",
           "request": {
             "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": {
-              "raw": "/api/students",
-              "host": ["api"],
-              "path": ["students"]
+              "raw": "{{baseUrl}}/api/students?page=1&limit=10&gradeLevel=&classId=",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "students"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "gradeLevel",
+                  "value": "",
+                  "description": "Filter by grade level (1-12)"
+                },
+                {
+                  "key": "classId",
+                  "value": "",
+                  "description": "Filter by class ID"
+                }
+              ]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Create Student",
           "request": {
             "method": "POST",
-            "url": {
-              "raw": "/api/students",
-              "host": ["api"],
-              "path": ["students"]
-            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nisn\": \"1234567890\",\n  \"name\": \"Nama Siswa\",\n  \"classId\": \"id_kelas\",\n  \"userId\": \"id_user\"\n}"
+              "raw": "{\n  \"userId\": \"user_id_here\",\n  \"studentNumber\": \"STD2024001\",\n  \"dateOfBirth\": \"2010-05-15\",\n  \"gradeLevel\": 10,\n  \"classId\": \"class_id_here\",\n  \"majorStream\": \"Science\",\n  \"enrollmentDate\": \"2024-08-01\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/students",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "students"]
             }
-          }
+          },
+          "response": []
         },
         {
-          "name": "Get Student By ID",
+          "name": "Get Student by ID",
           "request": {
             "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": {
-              "raw": "/api/students/:id",
-              "host": ["api"],
-              "path": ["students", ":id"]
+              "raw": "{{baseUrl}}/api/students/{{studentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "students", "{{studentId}}"]
             }
-          }
+          },
+          "response": []
         },
         {
-          "name": "Update Student",
+          "name": "Get Student Point Summary",
           "request": {
-            "method": "PUT",
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": {
-              "raw": "/api/students/:id",
-              "host": ["api"],
-              "path": ["students", ":id"]
-            },
-            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Nama Baru\"\n}" }
-          }
-        },
-        {
-          "name": "Delete Student",
-          "request": {
-            "method": "DELETE",
-            "url": {
-              "raw": "/api/students/:id",
-              "host": ["api"],
-              "path": ["students", ":id"]
+              "raw": "{{baseUrl}}/api/students/{{studentId}}/point-summary?academicYear=2024-2025",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "students", "{{studentId}}", "point-summary"],
+              "query": [
+                {
+                  "key": "academicYear",
+                  "value": "2024-2025",
+                  "description": "Filter by academic year"
+                }
+              ]
             }
-          }
+          },
+          "response": []
         }
       ]
     },
     {
-      "name": "Teachers",
+      "name": "Teacher Management",
       "item": [
         {
           "name": "Get All Teachers",
           "request": {
             "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": {
-              "raw": "/api/teachers",
-              "host": ["api"],
-              "path": ["teachers"]
+              "raw": "{{baseUrl}}/api/teachers?page=1&limit=10&department=",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "teachers"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "department",
+                  "value": "",
+                  "description": "Filter by department"
+                }
+              ]
             }
-          }
-        },
-        {
-          "name": "Create Teacher",
-          "request": {
-            "method": "POST",
-            "url": {
-              "raw": "/api/teachers",
-              "host": ["api"],
-              "path": ["teachers"]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nip\": \"1987654321\",\n  \"name\": \"Nama Guru\",\n  \"userId\": \"id_user\"\n}"
-            }
-          }
-        },
-        {
-          "name": "Get Teacher By ID",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "/api/teachers/:id",
-              "host": ["api"],
-              "path": ["teachers", ":id"]
-            }
-          }
-        },
-        {
-          "name": "Update Teacher",
-          "request": {
-            "method": "PUT",
-            "url": {
-              "raw": "/api/teachers/:id",
-              "host": ["api"],
-              "path": ["teachers", ":id"]
-            },
-            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Nama Baru\"\n}" }
-          }
-        },
-        {
-          "name": "Delete Teacher",
-          "request": {
-            "method": "DELETE",
-            "url": {
-              "raw": "/api/teachers/:id",
-              "host": ["api"],
-              "path": ["teachers", ":id"]
-            }
-          }
+          },
+          "response": []
         }
       ]
     },
     {
-      "name": "Parents",
-      "item": [
-        {
-          "name": "Get All Parents",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "/api/parents",
-              "host": ["api"],
-              "path": ["parents"]
-            }
-          }
-        },
-        {
-          "name": "Create Parent",
-          "request": {
-            "method": "POST",
-            "url": {
-              "raw": "/api/parents",
-              "host": ["api"],
-              "path": ["parents"]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Nama Orangtua\",\n  \"userId\": \"id_user\"\n}"
-            }
-          }
-        },
-        {
-          "name": "Get Parent By ID",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "/api/parents/:id",
-              "host": ["api"],
-              "path": ["parents", ":id"]
-            }
-          }
-        },
-        {
-          "name": "Update Parent",
-          "request": {
-            "method": "PUT",
-            "url": {
-              "raw": "/api/parents/:id",
-              "host": ["api"],
-              "path": ["parents", ":id"]
-            },
-            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Nama Baru\"\n}" }
-          }
-        },
-        {
-          "name": "Delete Parent",
-          "request": {
-            "method": "DELETE",
-            "url": {
-              "raw": "/api/parents/:id",
-              "host": ["api"],
-              "path": ["parents", ":id"]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "Classes",
+      "name": "Class Management",
       "item": [
         {
           "name": "Get All Classes",
           "request": {
             "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": {
-              "raw": "/api/classes",
-              "host": ["api"],
-              "path": ["classes"]
+              "raw": "{{baseUrl}}/api/classes?academicYear=2024-2025&gradeLevel=",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "classes"],
+              "query": [
+                {
+                  "key": "academicYear",
+                  "value": "2024-2025",
+                  "description": "Filter by academic year"
+                },
+                {
+                  "key": "gradeLevel",
+                  "value": "",
+                  "description": "Filter by grade level"
+                }
+              ]
             }
-          }
-        },
-        {
-          "name": "Create Class",
-          "request": {
-            "method": "POST",
-            "url": {
-              "raw": "/api/classes",
-              "host": ["api"],
-              "path": ["classes"]
-            },
-            "body": { "mode": "raw", "raw": "{\n  \"name\": \"X IPA 1\"\n}" }
-          }
-        },
-        {
-          "name": "Get Class By ID",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "/api/classes/:id",
-              "host": ["api"],
-              "path": ["classes", ":id"]
-            }
-          }
-        },
-        {
-          "name": "Update Class",
-          "request": {
-            "method": "PUT",
-            "url": {
-              "raw": "/api/classes/:id",
-              "host": ["api"],
-              "path": ["classes", ":id"]
-            },
-            "body": { "mode": "raw", "raw": "{\n  \"name\": \"X IPA 2\"\n}" }
-          }
-        },
-        {
-          "name": "Delete Class",
-          "request": {
-            "method": "DELETE",
-            "url": {
-              "raw": "/api/classes/:id",
-              "host": ["api"],
-              "path": ["classes", ":id"]
-            }
-          }
+          },
+          "response": []
         }
       ]
     },
     {
-      "name": "Points",
+      "name": "Point System",
       "item": [
         {
-          "name": "Get All Points",
+          "name": "Get Point Categories",
           "request": {
             "method": "GET",
-            "url": { "raw": "/api/points", "host": ["api"], "path": ["points"] }
-          }
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/point-categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "point-categories"]
+            }
+          },
+          "response": []
         },
         {
-          "name": "Create Point",
+          "name": "Get Point Records",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/point-records?page=1&limit=10&studentId=&academicYear=2024-2025&approvalStatus=",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "point-records"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "studentId",
+                  "value": "",
+                  "description": "Filter by student ID"
+                },
+                {
+                  "key": "academicYear",
+                  "value": "2024-2025",
+                  "description": "Filter by academic year"
+                },
+                {
+                  "key": "approvalStatus",
+                  "value": "",
+                  "description": "Filter by approval status (PENDING, APPROVED, REJECTED)"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Point Record",
           "request": {
             "method": "POST",
-            "url": {
-              "raw": "/api/points",
-              "host": ["api"],
-              "path": ["points"]
-            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"studentId\": \"id_siswa\",\n  \"pointCategoryId\": \"id_kategori\",\n  \"inputtedById\": \"id_user_guru\",\n  \"notes\": \"Prestasi/Pelanggaran\",\n  \"pointValue\": 10\n}"
-            }
-          }
-        },
-        {
-          "name": "Get Point By ID",
-          "request": {
-            "method": "GET",
+              "raw": "{\n  \"studentId\": \"student_id_here\",\n  \"pointTypeId\": \"point_type_id_here\",\n  \"teacherId\": \"teacher_id_here\",\n  \"pointsAwarded\": 10,\n  \"incidentDate\": \"2024-09-27\",\n  \"incidentTime\": \"10:30:00\",\n  \"location\": \"Classroom 12A\",\n  \"description\": \"Excellent performance in Mathematics quiz\",\n  \"academicYear\": \"2024-2025\",\n  \"semester\": 1\n}"
+            },
             "url": {
-              "raw": "/api/points/:id",
-              "host": ["api"],
-              "path": ["points", ":id"]
+              "raw": "{{baseUrl}}/api/point-records",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "point-records"]
             }
-          }
+          },
+          "response": []
         },
         {
-          "name": "Update Point",
+          "name": "Approve Point Record",
           "request": {
             "method": "PUT",
-            "url": {
-              "raw": "/api/points/:id",
-              "host": ["api"],
-              "path": ["points", ":id"]
-            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"notes\": \"Update catatan\"\n}"
+              "raw": "{\n  \"approvedBy\": \"approver_user_id_here\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/point-records/{{pointRecordId}}/approve",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "point-records", "{{pointRecordId}}", "approve"]
             }
-          }
+          },
+          "response": []
         },
         {
-          "name": "Delete Point",
+          "name": "Create Negative Point Record",
           "request": {
-            "method": "DELETE",
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"studentId\": \"student_id_here\",\n  \"pointTypeId\": \"point_type_id_here\",\n  \"teacherId\": \"teacher_id_here\",\n  \"pointsAwarded\": -5,\n  \"incidentDate\": \"2024-09-27\",\n  \"incidentTime\": \"14:30:00\",\n  \"location\": \"School Corridor\",\n  \"description\": \"Late to class without valid reason\",\n  \"academicYear\": \"2024-2025\",\n  \"semester\": 1\n}"
+            },
             "url": {
-              "raw": "/api/points/:id",
-              "host": ["api"],
-              "path": ["points", ":id"]
+              "raw": "{{baseUrl}}/api/point-records",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "point-records"]
             }
-          }
+          },
+          "response": []
         }
       ]
     },
     {
-      "name": "Point Categories",
+      "name": "Dashboard & Analytics",
       "item": [
         {
-          "name": "Get All Point Categories",
+          "name": "Get Dashboard Stats",
           "request": {
             "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": {
-              "raw": "/api/point-categories",
-              "host": ["api"],
-              "path": ["point-categories"]
+              "raw": "{{baseUrl}}/api/dashboard/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "dashboard", "stats"]
             }
-          }
-        },
-        {
-          "name": "Create Point Category",
-          "request": {
-            "method": "POST",
-            "url": {
-              "raw": "/api/point-categories",
-              "host": ["api"],
-              "path": ["point-categories"]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Prestasi\",\n  \"description\": \"Deskripsi\",\n  \"pointValue\": 10,\n  \"isAchievement\": true\n}"
-            }
-          }
-        },
-        {
-          "name": "Get Point Category By ID",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "/api/point-categories/:id",
-              "host": ["api"],
-              "path": ["point-categories", ":id"]
-            }
-          }
-        },
-        {
-          "name": "Update Point Category",
-          "request": {
-            "method": "PUT",
-            "url": {
-              "raw": "/api/point-categories/:id",
-              "host": ["api"],
-              "path": ["point-categories", ":id"]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Pelanggaran\"\n}"
-            }
-          }
-        },
-        {
-          "name": "Delete Point Category",
-          "request": {
-            "method": "DELETE",
-            "url": {
-              "raw": "/api/point-categories/:id",
-              "host": ["api"],
-              "path": ["point-categories", ":id"]
-            }
-          }
+          },
+          "response": []
         }
       ]
     },
     {
-      "name": "Notifications",
+      "name": "RBAC System",
       "item": [
         {
-          "name": "Get All Notifications",
+          "name": "Get All Roles",
           "request": {
             "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": {
-              "raw": "/api/notifications",
-              "host": ["api"],
-              "path": ["notifications"]
+              "raw": "{{baseUrl}}/api/roles",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "roles"]
             }
-          }
-        },
-        {
-          "name": "Create Notification",
-          "request": {
-            "method": "POST",
-            "url": {
-              "raw": "/api/notifications",
-              "host": ["api"],
-              "path": ["notifications"]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"userId\": \"id_user\",\n  \"message\": \"Pesan notifikasi\"\n}"
-            }
-          }
-        },
-        {
-          "name": "Get Notification By ID",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "/api/notifications/:id",
-              "host": ["api"],
-              "path": ["notifications", ":id"]
-            }
-          }
-        },
-        {
-          "name": "Update Notification",
-          "request": {
-            "method": "PUT",
-            "url": {
-              "raw": "/api/notifications/:id",
-              "host": ["api"],
-              "path": ["notifications", ":id"]
-            },
-            "body": { "mode": "raw", "raw": "{\n  \"isRead\": true\n}" }
-          }
-        },
-        {
-          "name": "Delete Notification",
-          "request": {
-            "method": "DELETE",
-            "url": {
-              "raw": "/api/notifications/:id",
-              "host": ["api"],
-              "path": ["notifications", ":id"]
-            }
-          }
+          },
+          "response": []
         }
       ]
     },
     {
-      "name": "Activity Logs",
+      "name": "Sample Data Creation",
+      "description": "Sample requests for testing with realistic data",
       "item": [
         {
-          "name": "Get All Activity Logs",
+          "name": "Create Admin User",
           "request": {
-            "method": "GET",
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@school.edu\",\n  \"username\": \"admin\",\n  \"password\": \"admin123\",\n  \"firstName\": \"System\",\n  \"lastName\": \"Administrator\",\n  \"phone\": \"+6281234567890\"\n}"
+            },
             "url": {
-              "raw": "/api/activity-logs",
-              "host": ["api"],
-              "path": ["activity-logs"]
+              "raw": "{{baseUrl}}/api/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users"]
             }
-          }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Teacher User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"sarah.teacher@school.edu\",\n  \"username\": \"sarahteacher\",\n  \"password\": \"teacher123\",\n  \"firstName\": \"Sarah\",\n  \"lastName\": \"Johnson\",\n  \"phone\": \"+6281234567891\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Student User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"alex.student@school.edu\",\n  \"username\": \"alexstudent\",\n  \"password\": \"student123\",\n  \"firstName\": \"Alex\",\n  \"lastName\": \"Smith\",\n  \"phone\": \"+6281234567892\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Parent User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"parent.smith@email.com\",\n  \"username\": \"parentsmith\",\n  \"password\": \"parent123\",\n  \"firstName\": \"Robert\",\n  \"lastName\": \"Smith\",\n  \"phone\": \"+6281234567893\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Excellence Point Record",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"studentId\": \"{{studentId}}\",\n  \"pointTypeId\": \"point_type_id_here\",\n  \"teacherId\": \"{{teacherId}}\",\n  \"pointsAwarded\": 15,\n  \"incidentDate\": \"2024-09-27\",\n  \"incidentTime\": \"09:00:00\",\n  \"location\": \"Science Laboratory\",\n  \"description\": \"Outstanding performance in Chemistry experiment - demonstrated excellent understanding of molecular structure\",\n  \"academicYear\": \"2024-2025\",\n  \"semester\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/point-records",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "point-records"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Discipline Point Record",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"studentId\": \"{{studentId}}\",\n  \"pointTypeId\": \"point_type_id_here\",\n  \"teacherId\": \"{{teacherId}}\",\n  \"pointsAwarded\": -10,\n  \"incidentDate\": \"2024-09-26\",\n  \"incidentTime\": \"13:45:00\",\n  \"location\": \"School Canteen\",\n  \"description\": \"Disrupting lunch period - throwing food and creating disturbance\",\n  \"academicYear\": \"2024-2025\",\n  \"semester\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/point-records",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "point-records"]
+            }
+          },
+          "response": []
         }
       ]
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{authToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Set dynamic timestamps",
+          "pm.globals.set('currentDate', new Date().toISOString().split('T')[0]);",
+          "pm.globals.set('currentDateTime', new Date().toISOString());",
+          "pm.globals.set('currentTime', new Date().toTimeString().split(' ')[0]);"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Auto-extract IDs from responses for chaining requests",
+          "if (pm.response.code === 200 || pm.response.code === 201) {",
+          "    try {",
+          "        const response = pm.response.json();",
+          "        if (response.success && response.data) {",
+          "            // Extract user ID",
+          "            if (response.data.id && pm.info.requestName.includes('User')) {",
+          "                pm.collectionVariables.set('userId', response.data.id);",
+          "            }",
+          "            // Extract student ID",
+          "            if (response.data.id && pm.info.requestName.includes('Student')) {",
+          "                pm.collectionVariables.set('studentId', response.data.id);",
+          "            }",
+          "            // Extract teacher ID",
+          "            if (response.data.id && pm.info.requestName.includes('Teacher')) {",
+          "                pm.collectionVariables.set('teacherId', response.data.id);",
+          "            }",
+          "            // Extract class ID",
+          "            if (response.data.id && pm.info.requestName.includes('Class')) {",
+          "                pm.collectionVariables.set('classId', response.data.id);",
+          "            }",
+          "            // Extract point record ID",
+          "            if (response.data.id && pm.info.requestName.includes('Point Record')) {",
+          "                pm.collectionVariables.set('pointRecordId', response.data.id);",
+          "            }",
+          "        }",
+          "    } catch (e) {",
+          "        console.log('No JSON response to parse');",
+          "    }",
+          "}",
+          "",
+          "// Basic response validation",
+          "pm.test('Response status code is successful', function () {",
+          "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+          "});",
+          "",
+          "pm.test('Response has success field', function () {",
+          "    const response = pm.response.json();",
+          "    pm.expect(response).to.have.property('success');",
+          "});"
+        ]
+      }
     }
   ]
 }

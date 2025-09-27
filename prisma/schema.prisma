@@ -1,206 +1,341 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// ====================================================================
-// --- GENERATOR AND DATASOURCE CONFIGURATION ---
-// ====================================================================
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql" // Ganti dengan "mysql", "sqlite", atau database lain yang Anda gunakan.
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-// ====================================================================
-// --- AUTHENTICATION & USER MANAGEMENT MODELS ---
-// ====================================================================
+// Enums
+enum RelationshipType {
+  FATHER
+  MOTHER
+  GUARDIAN
+  STEP_PARENT
+  GRANDPARENT
+  OTHER
+}
 
-// Model dasar untuk semua pengguna yang dapat login ke sistem.
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+// Core User Management
 model User {
-  id                String          @id @default(uuid())
-  email             String          @unique
-  password          String
-  // Status akun: 'PENDING' untuk registrasi yang butuh aktivasi, 'ACTIVE' untuk akun yang sudah aktif,
-  // 'INACTIVE' untuk akun yang dinonaktifkan (soft delete).
-  status            String          @default("PENDING") // ACTIVE, PENDING, INACTIVE
-  registrationToken String?         @unique // Digunakan untuk alur registrasi NISN.
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime        @updatedAt
-  deletedAt         DateTime?       // Soft delete: untuk menandai akun yang dinonaktifkan.
-  
-  // Hubungan dengan peran pengguna.
-  roles             UserRole[]
-  
-  // Hubungan opsional ke data spesifik pengguna.
-  student           Student?
-  teacher           Teacher?
-  parent            Parent?
+  id          String    @id @default(cuid())
+  email       String    @unique
+  username    String    @unique
+  passwordHash String   @map("password_hash")
+  firstName   String    @map("first_name")
+  lastName    String    @map("last_name")
+  phone       String?
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  isActive    Boolean   @default(true) @map("is_active")
+  lastLogin   DateTime? @map("last_login")
 
-  // Hubungan dengan aktivitas & notifikasi.
-  inputtedPoints    PointRecord[]   @relation("InputtedBy")
-  notifications     Notification[]
-  activityLogs      ActivityLog[]
-  
+  // Relations
+  student         Student?
+  teacher         Teacher?
+  parent          Parent?
+  userRoles       UserRole[]
+  createdPointTypes PointType[] @relation("PointTypeCreator")
+  approvedPoints  PointRecord[] @relation("PointApprover")
+  assignedRoles   UserRole[]    @relation("RoleAssigner")
+
   @@map("users")
 }
 
-// Model untuk peran-peran yang ada dalam sistem.
-model Role {
-  id      String     @id @default(uuid())
-  name    String     @unique // e.g., 'ADMIN', 'GURU', 'WALIKELAS', 'SISWA', 'ORANGTUA'
-  users   UserRole[]
-  
-  @@map("roles")
-}
-
-// Tabel penghubung untuk hubungan many-to-many antara User dan Role.
-// Memungkinkan satu User memiliki banyak Role (misal: Guru dan OrangTua).
-model UserRole {
-  userId  String
-  roleId  String
-  
-  user    User @relation(fields: [userId], references: [id])
-  role    Role @relation(fields: [roleId], references: [id])
-  
-  @@id([userId, roleId])
-  @@map("user_roles")
-}
-
-// ====================================================================
-// --- ACADEMIC & DATA MASTER MODELS ---
-// ====================================================================
-
-// Model untuk data kelas.
-model Class {
-  id              String          @id @default(uuid())
-  name            String          @unique // e.g., "X IPA 1"
-  homeroomTeacher Teacher?        @relation("HomeroomTeacher") // Wali kelas
-  students        Student[]
-  
-  @@map("classes")
-}
-
-// Model untuk data siswa.
 model Student {
-  id              String          @id @default(uuid())
-  nisn            String          @unique // NISN sebagai identifikasi unik siswa.
-  name            String
-  // `totalPoint` disimpan di sini untuk kemudahan akses dan performa.
-  // Pastikan untuk mengupdate nilai ini setiap kali ada PointRecord baru.
-  totalPoint      Int             @default(0)
-  classId         String?
-  userId          String          @unique // Menghubungkan ke akun User siswa.
-  
-  user            User            @relation(fields: [userId], references: [id])
-  class           Class?          @relation(fields: [classId], references: [id])
-  pointRecords    PointRecord[]
-  parentStudents  ParentStudent[]
-  
+  id             String    @id @default(cuid())
+  userId         String    @unique @map("user_id")
+  studentNumber  String    @unique @map("student_number")
+  dateOfBirth    DateTime  @map("date_of_birth") @db.Date
+  gradeLevel     Int       @map("grade_level")
+  classId        String?   @map("class_id")
+  majorStream    String?   @map("major_stream")
+  enrollmentDate DateTime  @map("enrollment_date") @db.Date
+  graduationDate DateTime? @map("graduation_date") @db.Date
+
+  // Relations
+  user                User                       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  class               Class?                     @relation(fields: [classId], references: [id])
+  parentRelationships ParentStudentRelationship[]
+  pointRecords        PointRecord[]
+  pointSummaries      PointSummary[]
+
   @@map("students")
 }
 
-// Model untuk data guru.
 model Teacher {
-  id              String          @id @default(uuid())
-  nip             String          @unique
-  name            String
-  isHomeroom      Boolean         @default(false) // Flag untuk menandai wali kelas.
-  homeroomClassId String?         @unique // Jika wali kelas, link ke kelas yang dia ajar.
-  userId          String          @unique // Menghubungkan ke akun User guru.
-  
-  user            User            @relation(fields: [userId], references: [id])
-  homeroomClass   Class?          @relation("HomeroomTeacher", fields: [homeroomClassId], references: [id])
-  
+  id                  String  @id @default(cuid())
+  userId              String  @unique @map("user_id")
+  employeeId          String  @unique @map("employee_id")
+  hireDate            DateTime @map("hire_date") @db.Date
+  department          String
+  isHeadOfDepartment  Boolean @default(false) @map("is_head_of_department")
+  specialty           String?
+
+  // Relations
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  homeroomClasses Class[]         @relation("HomeroomTeacher")
+  teacherClasses  TeacherClass[]
+  teacherSubjects TeacherSubject[]
+  pointRecords    PointRecord[]
+
   @@map("teachers")
 }
 
-// Model untuk data orang tua.
 model Parent {
-  id              String          @id @default(uuid())
-  name            String
-  userId          String          @unique // Menghubungkan ke akun User orang tua.
-  
-  user            User            @relation(fields: [userId], references: [id])
-  parentStudents  ParentStudent[]
-  
+  id               String  @id @default(cuid())
+  userId           String  @unique @map("user_id")
+  occupation       String?
+  emergencyContact Boolean @default(false) @map("emergency_contact")
+
+  // Relations
+  user                User                       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  studentRelationships ParentStudentRelationship[]
+
   @@map("parents")
 }
 
-// Tabel penghubung untuk hubungan many-to-many antara Parent dan Student.
-// Satu orang tua bisa memiliki banyak anak, satu anak bisa memiliki banyak orang tua.
-model ParentStudent {
-  parentId  String
-  studentId String
-  
-  parent    Parent  @relation(fields: [parentId], references: [id])
-  student   Student @relation(fields: [studentId], references: [id])
-  
-  @@id([parentId, studentId])
-  @@map("parent_students")
+model ParentStudentRelationship {
+  id               String           @id @default(cuid())
+  parentId         String           @map("parent_id")
+  studentId        String           @map("student_id")
+  relationshipType RelationshipType @map("relationship_type")
+  isPrimaryContact Boolean          @default(false) @map("is_primary_contact")
+  createdAt        DateTime         @default(now()) @map("created_at")
+
+  // Relations
+  parent  Parent  @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([parentId, studentId])
+  @@map("parent_student_relationships")
 }
 
-// ====================================================================
-// --- POINT & NOTIFICATION SYSTEM MODELS ---
-// ====================================================================
+// Academic Structure
+model Class {
+  id                String    @id @default(cuid())
+  className         String    @map("class_name")
+  classCode         String    @unique @map("class_code")
+  gradeLevel        Int       @map("grade_level")
+  academicYear      String    @map("academic_year")
+  homeroomTeacherId String?   @map("homeroom_teacher_id")
+  maxStudents       Int       @default(30) @map("max_students")
+  createdAt         DateTime  @default(now()) @map("created_at")
 
-// Model untuk kategori poin (pelanggaran atau prestasi).
+  // Relations
+  homeroomTeacher Teacher?       @relation("HomeroomTeacher", fields: [homeroomTeacherId], references: [id])
+  students        Student[]
+  teacherClasses  TeacherClass[]
+
+  @@map("classes")
+}
+
+model Subject {
+  id          String  @id @default(cuid())
+  subjectName String  @map("subject_name")
+  subjectCode String  @unique @map("subject_code")
+  department  String
+  credits     Int     @default(1)
+  description String?
+  isActive    Boolean @default(true) @map("is_active")
+
+  // Relations
+  teacherSubjects TeacherSubject[]
+
+  @@map("subjects")
+}
+
+model TeacherClass {
+  id               String   @id @default(cuid())
+  teacherId        String   @map("teacher_id")
+  classId          String   @map("class_id")
+  academicYear     String   @map("academic_year")
+  isHomeroomTeacher Boolean @default(false) @map("is_homeroom_teacher")
+  assignedDate     DateTime @map("assigned_date") @db.Date
+
+  // Relations
+  teacher Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  class   Class   @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  @@unique([teacherId, classId, academicYear])
+  @@map("teacher_classes")
+}
+
+model TeacherSubject {
+  id              String   @id @default(cuid())
+  teacherId       String   @map("teacher_id")
+  subjectId       String   @map("subject_id")
+  academicYear    String   @map("academic_year")
+  isPrimaryTeacher Boolean @default(false) @map("is_primary_teacher")
+  assignedDate    DateTime @map("assigned_date") @db.Date
+
+  // Relations
+  teacher Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  subject Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  @@unique([teacherId, subjectId, academicYear])
+  @@map("teacher_subjects")
+}
+
+// Points System
 model PointCategory {
-  id            String        @id @default(uuid())
-  name          String
-  description   String?
-  pointValue    Int           // Nilai poin: positif untuk prestasi, negatif untuk pelanggaran.
-  isAchievement Boolean       // true = prestasi, false = pelanggaran.
-  
-  pointRecords  PointRecord[]
-  
+  id           String  @id @default(cuid())
+  categoryName String  @map("category_name")
+  description  String?
+  isPositive   Boolean @map("is_positive")
+  colorCode    String  @default("#000000") @map("color_code")
+  isActive     Boolean @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  // Relations
+  pointTypes PointType[]
+
   @@map("point_categories")
 }
 
-// Model untuk mencatat setiap kejadian pelanggaran/prestasi.
+model PointType {
+  id              String  @id @default(cuid())
+  pointCategoryId String  @map("point_category_id")
+  typeName        String  @map("type_name")
+  description     String?
+  defaultPoints   Int     @map("default_points")
+  isActive        Boolean @default(true) @map("is_active")
+  createdBy       String  @map("created_by")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  pointCategory PointCategory @relation(fields: [pointCategoryId], references: [id])
+  creator       User          @relation("PointTypeCreator", fields: [createdBy], references: [id])
+  pointRecords  PointRecord[]
+
+  @@map("point_types")
+}
+
 model PointRecord {
-  id              String          @id @default(uuid())
-  studentId       String
-  pointCategoryId String
-  inputtedById    String          // ID User (guru/wali kelas) yang menginput.
-  notes           String?
-  createdAt       DateTime        @default(now())
-  
-  student         Student         @relation(fields: [studentId], references: [id])
-  pointCategory   PointCategory   @relation(fields: [pointCategoryId], references: [id])
-  inputtedBy      User            @relation("InputtedBy", fields: [inputtedById], references: [id])
-  
+  id             String         @id @default(cuid())
+  studentId      String         @map("student_id")
+  pointTypeId    String         @map("point_type_id")
+  teacherId      String         @map("teacher_id")
+  pointsAwarded  Int            @map("points_awarded")
+  incidentDate   DateTime       @map("incident_date") @db.Date
+  incidentTime   DateTime?      @map("incident_time") @db.Time
+  location       String?
+  description    String?
+  academicYear   String         @map("academic_year")
+  semester       Int            @default(1)
+  approvalStatus ApprovalStatus @default(PENDING) @map("approval_status")
+  approvedBy     String?        @map("approved_by")
+  approvedAt     DateTime?      @map("approved_at")
+  createdAt      DateTime       @default(now()) @map("created_at")
+  updatedAt      DateTime       @updatedAt @map("updated_at")
+
+  // Relations
+  student    Student    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  pointType  PointType  @relation(fields: [pointTypeId], references: [id])
+  teacher    Teacher    @relation(fields: [teacherId], references: [id])
+  approver   User?      @relation("PointApprover", fields: [approvedBy], references: [id])
+
   @@map("point_records")
 }
 
-// Model untuk notifikasi real-time.
-model Notification {
-  id          String        @id @default(uuid())
-  userId      String
-  message     String
-  isRead      Boolean       @default(false)
-  createdAt   DateTime      @default(now())
-  
-  user        User          @relation(fields: [userId], references: [id])
-  
-  @@map("notifications")
+// RBAC System
+model Role {
+  id           String  @id @default(cuid())
+  roleName     String  @unique @map("role_name")
+  description  String?
+  isSystemRole Boolean @default(false) @map("is_system_role")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  rolePermissions RolePermission[]
+  userRoles       UserRole[]
+
+  @@map("roles")
 }
 
-// ====================================================================
-// --- LOGGING & AUDIT MODELS ---
-// ====================================================================
+model Permission {
+  id             String  @id @default(cuid())
+  permissionName String  @unique @map("permission_name")
+  resource       String
+  action         String
+  description    String?
+  createdAt      DateTime @default(now()) @map("created_at")
 
-// Model untuk mencatat log aktivitas penting dalam sistem.
-model ActivityLog {
-  id          String   @id @default(uuid())
-  userId      String
-  action      String   // e.g., "CREATE_STUDENT", "UPDATE_POINT", "LOGIN"
-  details     String?  // Keterangan tambahan, bisa dalam format JSON.
-  createdAt   DateTime @default(now())
-  
-  user        User     @relation(fields: [userId], references: [id])
-  
-  @@map("activity_logs")
+  // Relations
+  rolePermissions RolePermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  id           String   @id @default(cuid())
+  roleId       String   @map("role_id")
+  permissionId String   @map("permission_id")
+  grantedAt    DateTime @default(now()) @map("granted_at")
+
+  // Relations
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model UserRole {
+  id         String    @id @default(cuid())
+  userId     String    @map("user_id")
+  roleId     String    @map("role_id")
+  assignedBy String?   @map("assigned_by")
+  assignedAt DateTime  @default(now()) @map("assigned_at")
+  expiresAt  DateTime? @map("expires_at")
+  isActive   Boolean   @default(true) @map("is_active")
+
+  // Relations
+  user     User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role     Role  @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  assigner User? @relation("RoleAssigner", fields: [assignedBy], references: [id])
+
+  @@unique([userId, roleId])
+  @@map("user_roles")
+}
+
+// Supporting Tables
+model AcademicYear {
+  id        String   @id @default(cuid())
+  yearName  String   @unique @map("year_name")
+  startDate DateTime @map("start_date") @db.Date
+  endDate   DateTime @map("end_date") @db.Date
+  isCurrent Boolean  @default(false) @map("is_current")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("academic_years")
+}
+
+model PointSummary {
+  id                   String   @id @default(cuid())
+  studentId            String   @map("student_id")
+  academicYear         String   @map("academic_year")
+  semester             Int
+  totalPositivePoints  Int      @default(0) @map("total_positive_points")
+  totalNegativePoints  Int      @default(0) @map("total_negative_points")
+  netPoints            Int      @default(0) @map("net_points")
+  lastUpdated          DateTime @default(now()) @map("last_updated")
+
+  // Relations
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, academicYear, semester])
+  @@map("point_summaries")
 }
