@@ -5,30 +5,27 @@ import { authOptions } from "@/lib/auth";
 
 const prisma = new PrismaClient();
 
-export async function GET() {
+export async function PUT() {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session || !["SUPERADMIN", "BK"].includes(session.user.role)) {
+    if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const users = await prisma.user.findMany({
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        createdAt: true,
+    await prisma.notifikasi.updateMany({
+      where: {
+        userId: session.user.id,
+        isRead: false,
       },
-      orderBy: {
-        createdAt: "desc",
+      data: {
+        isRead: true,
       },
     });
 
-    return NextResponse.json(users);
+    return NextResponse.json({ message: "Semua notifikasi ditandai sudah dibaca" });
   } catch (error) {
-    console.error("Get users error:", error);
+    console.error("Mark all as read error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

@@ -1,62 +1,66 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
-import { hash } from 'bcryptjs'
+import { NextResponse } from "next/server";
+import { PrismaClient } from "@prisma/client";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+
+const prisma = new PrismaClient();
 
 export async function GET() {
   try {
+    const session = await getServerSession(authOptions);
+
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    let siswaWhere: any = {};
+    let pelanggaranWhere: any = {};
+    let prestasiWhere: any = {};
+
+    // Filter data based on role
+    if (session.user.role === "WALIKELAS") {
+      siswaWhere.waliKelasId = session.user.id;
+      pelanggaranWhere.siswa = { waliKelasId: session.user.id };
+      prestasiWhere.siswa = { waliKelasId: session.user.id };
+    }
+
+    // Get statistics
     const [
-      totalStudents,
-      totalTeachers,
-      totalParents,
-      totalClasses,
-      pendingApprovals,
-      recentPointRecords
+      totalSiswa,
+      totalPelanggaran,
+      totalPrestasi,
+      pelanggaranMenunggu,
+      prestasiMenunggu,
     ] = await Promise.all([
-      prisma.student.count(),
-      prisma.teacher.count(),
-      prisma.parent.count(),
-      prisma.class.count(),
-      prisma.pointRecord.count({
-        where: { approvalStatus: 'PENDING' }
-      }),
-      prisma.pointRecord.findMany({
-        take: 5,
-        include: {
-          student: {
-            include: {
-              user: true
-            }
-          },
-          pointType: {
-            include: {
-              pointCategory: true
-            }
-          },
-          teacher: {
-            include: {
-              user: true
-            }
-          }
+      prisma.siswa.count({ where: siswaWhere }),
+      prisma.pelanggaran.count({ where: pelanggaranWhere }),
+      prisma.prestasi.count({ where: prestasiWhere }),
+      prisma.pelanggaran.count({
+        where: {
+          ...pelanggaranWhere,
+          status: "MENUNGGU",
         },
-        orderBy: { createdAt: 'desc' }
-      })
-    ])
+      }),
+      prisma.prestasi.count({
+        where: {
+          ...prestasiWhere,
+          status: "MENUNGGU",
+        },
+      }),
+    ]);
 
     return NextResponse.json({
-      success: true,
-      data: {
-        totalStudents,
-        totalTeachers,
-        totalParents,
-        totalClasses,
-        pendingApprovals,
-        recentPointRecords
-      }
-    })
+      totalSiswa,
+      totalPelanggaran,
+      totalPrestasi,
+      pelanggaranMenunggu,
+      prestasiMenunggu,
+    });
   } catch (error) {
+    console.error("Get stats error:", error);
     return NextResponse.json(
-      { success: false, error: 'Failed to fetch dashboard stats' },
+      { error: "Internal server error" },
       { status: 500 }
-    )
+    );
   }
 }

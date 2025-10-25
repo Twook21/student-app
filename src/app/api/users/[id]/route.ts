@@ -1,96 +1,67 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { NextRequest, NextResponse } from "next/server";
+import { PrismaClient } from "@prisma/client";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const user = await prisma.user.findUnique({
-      where: { id: params.id },
-      include: {
-        student: true,
-        teacher: true,
-        parent: true,
-        userRoles: {
-          include: {
-            role: true
-          }
-        }
-      }
-    })
-
-    if (!user) {
-      return NextResponse.json(
-        { success: false, error: 'User not found' },
-        { status: 404 }
-      )
-    }
-
-    return NextResponse.json({
-      success: true,
-      data: user
-    })
-  } catch (error) {
-    return NextResponse.json(
-      { success: false, error: 'Failed to fetch user' },
-      { status: 500 }
-    )
-  }
-}
-
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const body = await request.json()
-    
-    const user = await prisma.user.update({
-      where: { id: params.id },
-      data: body,
-      include: {
-        student: true,
-        teacher: true,
-        parent: true,
-        userRoles: {
-          include: {
-            role: true
-          }
-        }
-      }
-    })
-
-    return NextResponse.json({
-      success: true,
-      data: user,
-      message: 'User updated successfully'
-    })
-  } catch (error) {
-    return NextResponse.json(
-      { success: false, error: 'Failed to update user' },
-      { status: 500 }
-    )
-  }
-}
+const prisma = new PrismaClient();
 
 export async function DELETE(
-  request: NextRequest,
+  req: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    await prisma.user.delete({
-      where: { id: params.id }
-    })
+    const session = await getServerSession(authOptions);
 
-    return NextResponse.json({
-      success: true,
-      message: 'User deleted successfully'
-    })
+    if (!session || session.user.role !== "SUPERADMIN") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    await prisma.user.delete({
+      where: { id: params.id },
+    });
+
+    return NextResponse.json({ message: "User berhasil dihapus" });
   } catch (error) {
+    console.error("Delete user error:", error);
     return NextResponse.json(
-      { success: false, error: 'Failed to delete user' },
+      { error: "Internal server error" },
       { status: 500 }
-    )
+    );
+  }
+}
+
+export async function GET(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: params.id },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        createdAt: true,
+      },
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    return NextResponse.json(user);
+  } catch (error) {
+    console.error("Get user error:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }

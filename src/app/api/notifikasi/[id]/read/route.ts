@@ -1,34 +1,34 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 
 const prisma = new PrismaClient();
 
-export async function GET() {
+export async function PUT(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session || !["SUPERADMIN", "BK"].includes(session.user.role)) {
+    if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const users = await prisma.user.findMany({
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        createdAt: true,
+    await prisma.notifikasi.update({
+      where: {
+        id: params.id,
+        userId: session.user.id,
       },
-      orderBy: {
-        createdAt: "desc",
+      data: {
+        isRead: true,
       },
     });
 
-    return NextResponse.json(users);
+    return NextResponse.json({ message: "Notifikasi ditandai sudah dibaca" });
   } catch (error) {
-    console.error("Get users error:", error);
+    console.error("Mark as read error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

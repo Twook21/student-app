@@ -1,82 +1,26 @@
-// types/next-auth.d.ts
-import { DefaultSession, DefaultUser } from "next-auth"
-import { JWT, DefaultJWT } from "next-auth/jwt"
+import "next-auth";
 
 declare module "next-auth" {
   interface Session {
     user: {
-      id: string
-      email: string
-      roles: string[]
-      status: string
-      student?: {
-        id: string
-        nisn: string
-        name: string
-        totalPoint: number
-        classId: string | null
-      } | null
-      teacher?: {
-        id: string
-        nip: string
-        name: string
-        isHomeroom: boolean
-        homeroomClassId: string | null
-      } | null
-      parent?: {
-        id: string
-        name: string
-      } | null
-    } & DefaultSession["user"]
+      id: string;
+      name: string;
+      email: string;
+      role: string;
+    };
   }
 
   interface User {
-    id: string
-    email: string
-    roles: string[]
-    status: string
-    student?: {
-      id: string
-      nisn: string
-      name: string
-      totalPoint: number
-      classId: string | null
-    } | null
-    teacher?: {
-      id: string
-      nip: string
-      name: string
-      isHomeroom: boolean
-      homeroomClassId: string | null
-    } | null
-    parent?: {
-      id: string
-      name: string
-    } | null
+    id: string;
+    name: string;
+    email: string;
+    role: string;
   }
 }
 
 declare module "next-auth/jwt" {
   interface JWT {
-    roles: string[]
-    status: string
-    student?: {
-      id: string
-      nisn: string
-      name: string
-      totalPoint: number
-      classId: string | null
-    } | null
-    teacher?: {
-      id: string
-      nip: string
-      name: string
-      isHomeroom: boolean
-      homeroomClassId: string | null
-    } | null
-    parent?: {
-      id: string
-      name: string
-    } | null
+    id: string;
+    role: string;
   }
 }
