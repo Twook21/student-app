@@ -15,8 +15,27 @@ export async function GET() {
 
     let siswaId: string | null = null;
 
-    // If user is SISWA role (parent), find their child
-    if (session.user.role === "ORANGTUA") {
+    console.log("ROLE SESSION:", session.user.role);
+
+    // If user is SISWA, get their own data
+    if (session.user.role === "SISWA") {
+      const siswa = await prisma.siswa.findFirst({
+        where: {
+          userId: session.user.id,
+        },
+      });
+      
+      if (!siswa) {
+        return NextResponse.json(
+          { error: "Data siswa tidak ditemukan" },
+          { status: 404 }
+        );
+      }
+      
+      siswaId = siswa.id;
+    }
+    // If user is ORANGTUA, find their child
+    else if (session.user.role === "ORANGTUA") {
       const siswa = await prisma.siswa.findFirst({
         where: {
           orangTuaId: session.user.id,
@@ -34,7 +53,7 @@ export async function GET() {
     } else {
       // For other roles, we need siswaId from query or different logic
       return NextResponse.json(
-        { error: "Endpoint ini hanya untuk orang tua siswa" },
+        { error: "Endpoint ini hanya untuk siswa dan orang tua siswa" },
         { status: 403 }
       );
     }

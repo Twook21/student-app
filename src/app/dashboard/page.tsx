@@ -27,8 +27,8 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Redirect ORANGTUA to profile page
-    if (session?.user?.role === "ORANGTUA") {
+    // Redirect ORANGTUA & SISWA to profile page
+    if (session?.user?.role === "ORANGTUA" || session?.user?.role === "SISWA") {
       router.push("/dashboard/profil-saya");
       return;
     }

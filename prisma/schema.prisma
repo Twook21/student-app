@@ -39,6 +39,7 @@ model User {
   updatedAt DateTime @updatedAt
 
   // Relations
+  siswaUser          Siswa?        @relation("SiswaUser")
   siswaAsOrangTua    Siswa[]       @relation("OrangTua")
   siswaAsWaliKelas   Siswa[]       @relation("WaliKelas")
   pelanggaranInput   Pelanggaran[] @relation("GuruInput")
@@ -56,10 +57,12 @@ model Siswa {
   totalPoin    Int      @default(0)
   orangTuaId   String?
   waliKelasId  String?
+  userId       String?  @unique // Akun login untuk siswa
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
   // Relations
+  user         User?         @relation("SiswaUser", fields: [userId], references: [id])
   orangTua     User?         @relation("OrangTua", fields: [orangTuaId], references: [id])
   waliKelas    User?         @relation("WaliKelas", fields: [waliKelasId], references: [id])
   pelanggaran  Pelanggaran[]
@@ -138,4 +141,17 @@ model Notifikasi {
   user User @relation("Penerima", fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("notifikasi")
+}
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  userId      String
+  action      String   // CREATE, UPDATE, DELETE, APPROVE, REJECT, APPEAL
+  entity      String   // SISWA, PELANGGARAN, PRESTASI, USER, etc
+  entityId    String
+  description String   @db.Text
+  metadata    String?  @db.Text // JSON string for additional data
+  createdAt   DateTime @default(now())
+
+  @@map("audit_logs")
 }

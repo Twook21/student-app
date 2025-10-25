@@ -4,7 +4,18 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import {
   Table,
   TableBody,
@@ -13,7 +24,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { User, AlertTriangle, Trophy, Award } from "lucide-react";
+import { User, AlertTriangle, Trophy, Award, MessageSquare } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 import { format } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
 

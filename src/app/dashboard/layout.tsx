@@ -34,14 +34,15 @@ import {
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard, roles: ["SUPERADMIN", "BK", "WALIKELAS", "GURUMAPEL"] },
-  { name: "Profil Anak", href: "/dashboard/profil-saya", icon: User, roles: ["ORANGTUA"] },
+  { name: "Profil Saya", href: "/dashboard/profil-saya", icon: User, roles: ["SISWA", "ORANGTUA"] },
+  { name: "Ranking", href: "/dashboard/ranking", icon: Trophy, roles: ["SUPERADMIN", "BK", "WALIKELAS", "SISWA"] },
   { name: "Data User", href: "/dashboard/users", icon: Users, roles: ["SUPERADMIN", "BK"] },
   { name: "Data Siswa", href: "/dashboard/siswa", icon: GraduationCap, roles: ["SUPERADMIN", "BK", "WALIKELAS"] },
   { name: "Pelanggaran", href: "/dashboard/pelanggaran", icon: AlertTriangle, roles: ["SUPERADMIN", "BK", "WALIKELAS"] },
   { name: "Prestasi", href: "/dashboard/prestasi", icon: Trophy, roles: ["SUPERADMIN", "BK", "WALIKELAS", "GURUMAPEL"] },
   { name: "Kategori", href: "/dashboard/kategori", icon: FolderKanban, roles: ["SUPERADMIN", "BK"] },
   { name: "Laporan", href: "/dashboard/laporan", icon: FileText, roles: ["SUPERADMIN", "BK", "WALIKELAS"] },
-  { name: "Notifikasi", href: "/dashboard/notifikasi", icon: Bell, roles: ["SUPERADMIN", "BK", "WALIKELAS", "GURUMAPEL", "ORANGTUA"] },
+  { name: "Notifikasi", href: "/dashboard/notifikasi", icon: Bell, roles: ["SUPERADMIN", "BK", "WALIKELAS", "GURUMAPEL", "ORANGTUA", "SISWA"] },
 ];
 
 export default function DashboardLayout({
