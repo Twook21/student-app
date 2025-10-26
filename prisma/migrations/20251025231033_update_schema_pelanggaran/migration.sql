@@ -14,6 +14,11 @@ CREATE TABLE "public"."users" (
     "email" TEXT NOT NULL,
     "password" TEXT NOT NULL,
     "role" "public"."Role" NOT NULL,
+    "phone" TEXT,
+    "address" TEXT,
+    "avatar" TEXT,
+    "resetToken" TEXT,
+    "resetTokenExpiry" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -54,6 +59,7 @@ CREATE TABLE "public"."pelanggaran" (
     "siswaId" TEXT NOT NULL,
     "guruId" TEXT NOT NULL,
     "kategoriId" TEXT NOT NULL,
+    "waliKelasId" TEXT,
     "deskripsi" TEXT NOT NULL,
     "poin" INTEGER NOT NULL,
     "status" "public"."StatusApproval" NOT NULL DEFAULT 'MENUNGGU',
@@ -135,6 +141,9 @@ ALTER TABLE "public"."pelanggaran" ADD CONSTRAINT "pelanggaran_guruId_fkey" FORE
 
 -- AddForeignKey
 ALTER TABLE "public"."pelanggaran" ADD CONSTRAINT "pelanggaran_kategoriId_fkey" FOREIGN KEY ("kategoriId") REFERENCES "public"."kategori"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."pelanggaran" ADD CONSTRAINT "pelanggaran_waliKelasId_fkey" FOREIGN KEY ("waliKelasId") REFERENCES "public"."users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."prestasi" ADD CONSTRAINT "prestasi_siswaId_fkey" FOREIGN KEY ("siswaId") REFERENCES "public"."siswa"("id") ON DELETE CASCADE ON UPDATE CASCADE;

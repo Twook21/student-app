@@ -80,21 +80,25 @@ export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session || !["WALIKELAS", "BK"].includes(session.user.role)) {
+    // allow WALIKELAS, BK and GURUMAPEL to create pelanggaran
+    if (!session || !["WALIKELAS", "BK", "GURUMAPEL"].includes(session.user.role)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { siswaId, kategoriId, deskripsi, poin } = await req.json();
+    const { siswaId, kategoriId, deskripsi, poin, fotoUrl } = await req.json();
 
-    // Validation
-    if (!siswaId || !kategoriId || !deskripsi || !poin) {
+    // Validation (allow poin = 0)
+    if (!siswaId || !kategoriId || !deskripsi || poin === undefined || poin === null) {
       return NextResponse.json(
         { error: "Semua field harus diisi" },
         { status: 400 }
       );
     }
 
-    // Create pelanggaran
+    // set needsWaliKelasApproval berdasarkan siapa yang menginput
+    const needsWali = session.user.role === "GURUMAPEL";
+
+    // Create pelanggaran (simpan fotoUrl dan flag kebutuhan approval wali kelas)
     const pelanggaran = await prisma.pelanggaran.create({
       data: {
         siswaId,
@@ -102,7 +106,9 @@ export async function POST(req: NextRequest) {
         kategoriId,
         deskripsi,
         poin,
-        status: "MENUNGGU"
+        status: "MENUNGGU",
+        fotoUrl: fotoUrl || null,
+        needsWaliKelasApproval: needsWali
       },
       include: {
         siswa: {

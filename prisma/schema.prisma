@@ -1,5 +1,3 @@
-// This is your Prisma schema file
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -35,18 +33,29 @@ model User {
   email     String   @unique
   password  String
   role      Role
+  phone     String?
+  address   String?  @db.Text
+  avatar    String?  
+  mapel     String?  
+  resetToken String?  
+  resetTokenExpiry DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Relations
   siswaUser          Siswa?        @relation("SiswaUser")
   siswaAsOrangTua    Siswa[]       @relation("OrangTua")
   siswaAsWaliKelas   Siswa[]       @relation("WaliKelas")
   pelanggaranInput   Pelanggaran[] @relation("GuruInput")
+  pelanggaranApproveWaliKelas Pelanggaran[] @relation("WaliKelasApproval")
   prestasiInput      Prestasi[]    @relation("GuruInput")
   notifikasiPenerima Notifikasi[]  @relation("Penerima")
 
   @@map("users")
+}
+
+enum Gender {
+  L 
+  P 
 }
 
 model Siswa {
@@ -54,14 +63,14 @@ model Siswa {
   nama         String
   nis          String   @unique
   kelas        String
+  gender       Gender
   totalPoin    Int      @default(0)
   orangTuaId   String?
   waliKelasId  String?
-  userId       String?  @unique // Akun login untuk siswa
+  userId       String?  @unique 
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  // Relations
   user         User?         @relation("SiswaUser", fields: [userId], references: [id])
   orangTua     User?         @relation("OrangTua", fields: [orangTuaId], references: [id])
   waliKelas    User?         @relation("WaliKelas", fields: [waliKelasId], references: [id])
@@ -79,7 +88,6 @@ model Kategori {
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
-  // Relations
   pelanggaran Pelanggaran[]
   prestasi    Prestasi[]
 
@@ -96,13 +104,18 @@ model Pelanggaran {
   status      StatusApproval @default(MENUNGGU)
   alasanSiswa String?        @db.Text
   catatanBK   String?        @db.Text
+  fotoUrl     String?        
+  approvedByWaliKelasId String?
+  approvedByWaliKelasAt DateTime?
+  needsWaliKelasApproval Boolean @default(false)
   tanggal     DateTime       @default(now())
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
 
-  // Relations
+  
   siswa    Siswa    @relation(fields: [siswaId], references: [id], onDelete: Cascade)
   guru     User     @relation("GuruInput", fields: [guruId], references: [id])
+  waliKelasApprover User? @relation("WaliKelasApproval", fields: [approvedByWaliKelasId], references: [id])
   kategori Kategori @relation(fields: [kategoriId], references: [id])
 
   @@map("pelanggaran")
@@ -117,11 +130,11 @@ model Prestasi {
   poin       Int
   status     StatusApproval @default(MENUNGGU)
   catatanBK  String?        @db.Text
+  fotoUrl    String?        
   tanggal    DateTime       @default(now())
   createdAt  DateTime       @default(now())
   updatedAt  DateTime       @updatedAt
 
-  // Relations
   siswa    Siswa    @relation(fields: [siswaId], references: [id], onDelete: Cascade)
   guru     User     @relation("GuruInput", fields: [guruId], references: [id])
   kategori Kategori @relation(fields: [kategoriId], references: [id])
@@ -137,7 +150,6 @@ model Notifikasi {
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
 
-  // Relations
   user User @relation("Penerima", fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("notifikasi")
@@ -146,11 +158,11 @@ model Notifikasi {
 model AuditLog {
   id          String   @id @default(uuid())
   userId      String
-  action      String   // CREATE, UPDATE, DELETE, APPROVE, REJECT, APPEAL
-  entity      String   // SISWA, PELANGGARAN, PRESTASI, USER, etc
+  action      String   
+  entity      String   
   entityId    String
   description String   @db.Text
-  metadata    String?  @db.Text // JSON string for additional data
+  metadata    String?  @db.Text 
   createdAt   DateTime @default(now())
 
   @@map("audit_logs")

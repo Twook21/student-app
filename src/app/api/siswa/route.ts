@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
@@ -45,6 +46,11 @@ export async function GET(req: NextRequest) {
             name: true,
             email: true
           }
+        },
+        user: {
+          select: {
+            email: true
+          }
         }
       },
       orderBy: {
@@ -72,12 +78,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { nama, nis, kelas, orangTuaId, waliKelasId } = await req.json();
+    const { nama, nis, kelas, gender, orangTuaId, waliKelasId, createAccount, email, password } = await req.json();
 
     // Validation
-    if (!nama || !nis || !kelas) {
+    if (!nama || !nis || !kelas || !gender) {
       return NextResponse.json(
-        { error: "Nama, NIS, dan Kelas harus diisi" },
+        { error: "Nama, NIS, Kelas, dan Jenis Kelamin harus diisi" },
         { status: 400 }
       );
     }
@@ -94,13 +100,52 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    let userId = null;
+
+    // Create user account if requested
+    if (createAccount) {
+      if (!email || !password) {
+        return NextResponse.json(
+          { error: "Email dan password harus diisi untuk membuat akun" },
+          { status: 400 }
+        );
+      }
+
+      // Check if email already exists
+      const existingUser = await prisma.user.findUnique({
+        where: { email }
+      });
+
+      if (existingUser) {
+        return NextResponse.json(
+          { error: "Email sudah terdaftar" },
+          { status: 400 }
+        );
+      }
+
+      // Create user account for student
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const user = await prisma.user.create({
+        data: {
+          name: nama,
+          email,
+          password: hashedPassword,
+          role: "SISWA",
+        }
+      });
+
+      userId = user.id;
+    }
+
     const siswa = await prisma.siswa.create({
       data: {
         nama,
         nis,
         kelas,
+        gender,
         orangTuaId: orangTuaId || null,
         waliKelasId: waliKelasId || null,
+        userId,
       },
       include: {
         waliKelas: {
@@ -108,6 +153,9 @@ export async function POST(req: NextRequest) {
         },
         orangTua: {
           select: { name: true }
+        },
+        user: {
+          select: { email: true }
         }
       }
     });

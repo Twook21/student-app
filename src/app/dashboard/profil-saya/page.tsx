@@ -24,10 +24,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { User, AlertTriangle, Trophy, Award, MessageSquare } from "lucide-react";
+import { User, AlertTriangle, Trophy, Award, MessageSquare, Eye } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { format } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
+import Image from "next/image";
 
 interface SiswaProfile {
   id: string;
@@ -61,10 +62,14 @@ interface Prestasi {
 
 export default function ProfilSayaPage() {
   const { data: session } = useSession();
+  const { toast } = useToast();
   const [profile, setProfile] = useState<SiswaProfile | null>(null);
   const [pelanggaran, setPelanggaran] = useState<Pelanggaran[]>([]);
   const [prestasi, setPrestasi] = useState<Prestasi[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAppealDialogOpen, setIsAppealDialogOpen] = useState(false);
+  const [selectedPelanggaran, setSelectedPelanggaran] = useState<Pelanggaran | null>(null);
+  const [alasanBanding, setAlasanBanding] = useState("");
 
   useEffect(() => {
     fetchProfile();
@@ -83,6 +88,53 @@ export default function ProfilSayaPage() {
       console.error("Error fetching profile:", error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleAppeal = async () => {
+    if (!selectedPelanggaran || !alasanBanding) {
+      toast({
+        title: "Error",
+        description: "Alasan banding harus diisi",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `/api/pelanggaran/${selectedPelanggaran.id}/appeal`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ alasanSiswa: alasanBanding }),
+        }
+      );
+
+      if (response.ok) {
+        toast({
+          title: "Berhasil",
+          description: "Banding berhasil diajukan",
+        });
+        setIsAppealDialogOpen(false);
+        setAlasanBanding("");
+        setSelectedPelanggaran(null);
+        fetchProfile();
+      } else {
+        const error = await response.json();
+        toast({
+          title: "Error",
+          description: error.error || "Gagal mengajukan banding",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error submitting appeal:", error);
+      toast({
+        title: "Error",
+        description: "Terjadi kesalahan",
+        variant: "destructive",
+      });
     }
   };
 
@@ -227,6 +279,9 @@ export default function ProfilSayaPage() {
                         <TableHead>Deskripsi</TableHead>
                         <TableHead className="text-right">Poin</TableHead>
                         <TableHead>Status</TableHead>
+                        {session?.user?.role === "SISWA" && (
+                          <TableHead className="text-right">Aksi</TableHead>
+                        )}
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -238,11 +293,43 @@ export default function ProfilSayaPage() {
                             })}
                           </TableCell>
                           <TableCell>{p.kategori.nama}</TableCell>
-                          <TableCell>{p.deskripsi}</TableCell>
+                          <TableCell>
+                            <div>
+                              <p>{p.deskripsi}</p>
+                              {p.alasanSiswa && (
+                                <p className="text-xs text-blue-600 mt-1">
+                                  <MessageSquare className="inline h-3 w-3 mr-1" />
+                                  Banding: {p.alasanSiswa}
+                                </p>
+                              )}
+                              {p.catatanBK && (
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  Catatan BK: {p.catatanBK}
+                                </p>
+                              )}
+                            </div>
+                          </TableCell>
                           <TableCell className="text-right font-semibold text-red-600">
                             -{p.poin}
                           </TableCell>
                           <TableCell>{getStatusBadge(p.status)}</TableCell>
+                          {session?.user?.role === "SISWA" && (
+                            <TableCell className="text-right">
+                              {p.status === "DISETUJUI" && !p.alasanSiswa && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => {
+                                    setSelectedPelanggaran(p);
+                                    setIsAppealDialogOpen(true);
+                                  }}
+                                >
+                                  <MessageSquare className="h-4 w-4 mr-1" />
+                                  Ajukan Banding
+                                </Button>
+                              )}
+                            </TableCell>
+                          )}
                         </TableRow>
                       ))}
                     </TableBody>
@@ -299,6 +386,62 @@ export default function ProfilSayaPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Appeal Dialog */}
+      <Dialog open={isAppealDialogOpen} onOpenChange={setIsAppealDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Ajukan Banding</DialogTitle>
+            <DialogDescription>
+              Berikan alasan mengapa Anda keberatan dengan pelanggaran ini
+            </DialogDescription>
+          </DialogHeader>
+          {selectedPelanggaran && (
+            <div className="space-y-4">
+              <div className="p-3 bg-gray-50 rounded-lg space-y-2">
+                <div className="text-sm">
+                  <span className="font-medium">Kategori:</span>{" "}
+                  {selectedPelanggaran.kategori.nama}
+                </div>
+                <div className="text-sm">
+                  <span className="font-medium">Deskripsi:</span>{" "}
+                  {selectedPelanggaran.deskripsi}
+                </div>
+                <div className="text-sm">
+                  <span className="font-medium">Poin:</span>{" "}
+                  <span className="text-red-600">-{selectedPelanggaran.poin}</span>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="alasan">Alasan Banding</Label>
+                <Textarea
+                  id="alasan"
+                  value={alasanBanding}
+                  onChange={(e) => setAlasanBanding(e.target.value)}
+                  placeholder="Contoh: Saya tidak datang terlambat, saya sudah di kelas tepat waktu..."
+                  rows={5}
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button onClick={handleAppeal} className="flex-1">
+                  Kirim Banding
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setIsAppealDialogOpen(false);
+                    setAlasanBanding("");
+                    setSelectedPelanggaran(null);
+                  }}
+                  className="flex-1"
+                >
+                  Batal
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
